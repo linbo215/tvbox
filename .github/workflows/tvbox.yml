@@ -28,6 +28,7 @@ jobs:
 
       - name: 3. 运行 Docker 清洗工具 (第一步：抓取与清洗)
         run: |
+          # 加上 || true，即使脚本因为某个接口报错崩溃，也会继续执行下一步的“自定义修正”
           docker run --rm \
             -v ${{ github.workspace }}/ol:/ol \
             -e username=${{ secrets.MY_USERNAME }} \
@@ -37,7 +38,7 @@ jobs:
             -e mirror=0 \
             -e target='tvbox.json' \
             -e jar_suffix='css' \
-            2011820123/tvbox:latest
+            2011820123/tvbox:latest || echo "部分接口解析失败，继续执行后期加工"
 
       - name: 4. 运行自定义修正脚本 (第二步：格式转换与镜像替换)
         working-directory: ./ol
