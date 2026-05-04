@@ -1,0 +1,12 @@
+{
+  "urls": [
+    {
+      "name": "肥猫",
+      "url": "https://raw.githubusercontent.com/linbo215/ol/master/肥猫.txt"
+    },
+    {
+      "name": "饭太硬",
+      "url": "https://raw.githubusercontent.com/linbo215/ol/master/饭太硬.txt"
+    }
+  ]
+}
