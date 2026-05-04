@@ -26,9 +26,8 @@ jobs:
           # 确保 jar 目录存在，防止脚本下载报错
           mkdir -p ol/jar
 
-      - name: 3. 运行 Docker 清洗工具 (第一步：抓取与清洗)
+      - name: 3. 运行 Docker 清洗工具
         run: |
-          # 加上 || true，即使脚本因为某个接口报错崩溃，也会继续执行下一步的“自定义修正”
           docker run --rm \
             -v ${{ github.workspace }}/ol:/ol \
             -e username=${{ secrets.MY_USERNAME }} \
@@ -40,33 +39,31 @@ jobs:
             -e jar_suffix='css' \
             2011820123/tvbox:latest || echo "部分接口解析失败，继续执行后期加工"
 
-      - name: 4. 运行自定义修正脚本 (第二步：格式转换与镜像替换)
+      - name: 4. 权限抢回与二次加工
         working-directory: ./ol
         run: |
-          # 1. 把所有下载好的 .css 文件改回 .jar
+          # A. 【必须第一步】把 Docker 生成的文件所有权改回给当前用户
+          sudo chown -R $USER:$USER .
+          
+          # B. 将 .css 改回 .jar
           if [ -d "jar" ]; then
             find jar -name "*.css" -exec sh -c 'mv "$1" "${1%.css}.jar"' _ {} \;
           fi
 
-          # 2. 修改 json 文件内容
-          # a. 把内部引用的 .css 替换回 .jar
-          # b. 把 ghp.ci 替换为你喜欢的镜像站 (例如 github.moeyy.xyz)，或者直接删掉
-          # 下面这行命令：先换后缀，再换镜像
+          # C. 修改 json 里的内容（后缀改 jar，去掉 ghp.ci 镜像）
+          # 使用强制替换，确保生效
           sed -i 's/\.css/.jar/g' *.json
           sed -i 's/https:\/\/ghp.ci\///g' *.json
           
-          # 如果你想换成其他的加速前缀，比如 jsdelivr，可以用下面这行：
-          # sed -i 's/https:\/\/ghp.ci\//https:\/\/fastly.jsdelivr.net\/gh\/linbo215\/ol@master\//g' *.json
-
-      - name: 5. 修复权限并推送
-        working-directory: ./ol
-        run: |
-          sudo chown -R $USER:$USER .
+          # D. 标记安全目录并提交推送
           git config --global --add safe.directory $(pwd)
           git config --local user.email "action@github.com"
           git config --local user.name "TVBox_Bot"
           git add .
+          
           if [ -n "$(git status --porcelain)" ]; then
-            git commit -m "Update TVBox (Jar Refined) $(date +'%Y-%m-%d %H:%M')"
+            git commit -m "Update TVBox (Refined) $(date +'%Y-%m-%d %H:%M')"
             git push
+          else
+            echo "Nothing to update"
           fi
