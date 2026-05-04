@@ -42,41 +42,39 @@ jobs:
             -e jar_suffix='css' \
             2011820123/tvbox:latest || echo "⚠️ 部分加密接口解析失败，跳过该接口继续加工..."
 
-      - name: 4. 权限抢回与格式修正 (核心逻辑)
+      - name: 4. 权限抢回与二次加工 (含 all.json 瘦身)
         working-directory: ./ol
         run: |
-          # A. 抢回文件所有权 (Docker 产生的 root 文件改回当前用户)
+          # A. 抢回权限
           sudo chown -R $USER:$USER .
           
-          # B. 将 .css 恢复为 .jar
+          # B. 转换 jar 格式
           if [ -d "jar" ]; then
-            echo "正在转换 jar 格式..."
             find jar -name "*.css" -exec sh -c 'mv "$1" "${1%.css}.jar"' _ {} \;
           fi
 
-          # C. 全局修正 JSON 内容
-          # 1. 把所有 .css 引用改回 .jar
-          # 2. 去掉不稳定的 ghp.ci 镜像前缀
-          # 3. 如果需要，可以把 main 分支名修正为 master (根据你仓库实际情况)
+          # C. 修正 JSON 内容
           sed -i 's/\.css/.jar/g' *.json
           sed -i 's/https:\/\/ghp.ci\///g' *.json
-          
-          # 如果你的仓库默认分支是 master 而不是 main，执行下面这行替换
           sed -i 's/\/main\//\/master\//g' *.json
 
-      - name: 5. 提交并推送到 GitHub
-        working-directory: ./ol
-        run: |
+          # D. 【核心改进】all.json 瘦身
+          # 这里把你不想要的关键字写在 test("...") 里面，用 | 分隔
+          if [ -f "all.json" ]; then
+            echo "正在清理 all.json 中的冗余项..."
+            cat all.json | jq '.urls |= map(select(.name | test("tvbox_tools|requirements|KsTOZZ|cnb|run\\.py") | not))' > tmp.json
+            mv tmp.json all.json
+          fi
+
+          # E. 推送准备
           git config --global --add safe.directory $(pwd)
           git config --local user.email "action@github.com"
           git config --local user.name "TVBox_Bot"
-          
           git add .
           
-          # 只有在有变动时才提交
           if [ -n "$(git status --porcelain)" ]; then
-            git commit -m "Update TVBox (Refined) $(date +'%Y-%m-%d %H:%M')"
-            git push origin master # 明确推送到 master 分支
+            git commit -m "Update TVBox (Cleaned & Refined) $(date +'%Y-%m-%d %H:%M')"
+            git push origin master
           else
-            echo "✅ 内容已是最新，无需更新。"
+            echo "Nothing to update"
           fi
