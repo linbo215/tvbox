@@ -25,27 +25,21 @@ jobs:
 
       - name: 运行私有化清洗脚本
         env:
-          # 这里填入你的配置参数
           USERNAME: ${{ secrets.MY_USERNAME }}
           TOKEN: ${{ secrets.MY_GITHUB_TOKEN }}
-          # URL 可以填多个，用逗号隔开，参考你的演示示例
           SOURCE_URL: 'https://www.iyouhun.com/tv/0,http://肥猫.com?&signame=肥猫'
           REPO_NAME: 'ol'
           TARGET_JSON: 'tvbox.json'
-          MIRROR_TYPE: '2'
-          JAR_SUFFIX: 'css'
+          # --- 修改这里 ---
+          MIRROR_TYPE: '0'  # 0 代表不使用镜像，直连 github.com
         run: |
-          # 如果你拿到了 fish2018/tvbox 的核心脚本 .py 文件
-          # 直接运行：python tvbox_tools.py
-          # 如果直接调用 Docker 镜像（GitHub 也支持跑 Docker）：
           docker run --rm \
             -e username=$USERNAME \
             -e token=$TOKEN \
             -e url="$SOURCE_URL" \
             -e repo=$REPO_NAME \
             -e target=$TARGET_JSON \
-            -e mirror=$MIRROR_TYPE \
-            -e jar_suffix=$JAR_SUFFIX \
+            -e mirror=0 \
             2011820123/tvbox:latest
 
       - name: 强制推送到当前仓库
