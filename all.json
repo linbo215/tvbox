@@ -1,6 +1,10 @@
 {
   "urls": [
     {
+      "name": "摸鱼儿",
+      "url": "https://raw.githubusercontent.com/linbo215/ol/master/摸鱼儿.txt"
+    },
+    {
       "name": "肥猫",
       "url": "https://raw.githubusercontent.com/linbo215/ol/master/肥猫.txt"
     },
