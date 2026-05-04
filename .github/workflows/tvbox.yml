@@ -5,6 +5,10 @@ on:
     - cron: '0 21 * * *' # 每天北京时间凌晨 5 点自动运行
   workflow_dispatch:      # 支持手动点击按钮运行
 
+# 强制使用最新 Node.js 环境，解决弃用警告
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -13,20 +17,19 @@ jobs:
       - name: 1. 检出目标仓库 (ol)
         uses: actions/checkout@v4
         with:
-          # 注意：这里拉取的是你存放 all.json 的仓库
           repository: ${{ github.repository_owner }}/ol
           token: ${{ secrets.MY_GITHUB_TOKEN }}
-          path: ol  # 关键：必须下载到名为 ol 的文件夹中
+          path: ol
           persist-credentials: true
 
-      - name: 2. 预处理环境与权限
+      - name: 2. 预处理环境
         run: |
-          # 修复 Git 权限限制，防止 Docker 内部无法操作挂载目录
-          git config --global --add safe.directory /home/runner/work/${{ github.event.repository.name }}/ol
-          # 确保 jar 目录存在，防止脚本下载报错
+          # 确保目录存在并清理旧的随机乱码文件（可选）
           mkdir -p ol/jar
+          # 如果你想每次运行都清空旧文件，可以取消下面这行的注释
+          # rm -f ol/*.txt ol/jar/*.jar
 
-      - name: 3. 运行 Docker 清洗工具
+      - name: 3. 运行 Docker 清洗工具 (抓取与清洗)
         run: |
           docker run --rm \
             -v ${{ github.workspace }}/ol:/ol \
@@ -37,33 +40,43 @@ jobs:
             -e mirror=0 \
             -e target='tvbox.json' \
             -e jar_suffix='css' \
-            2011820123/tvbox:latest || echo "部分接口解析失败，继续执行后期加工"
+            2011820123/tvbox:latest || echo "⚠️ 部分加密接口解析失败，跳过该接口继续加工..."
 
-      - name: 4. 权限抢回与二次加工
+      - name: 4. 权限抢回与格式修正 (核心逻辑)
         working-directory: ./ol
         run: |
-          # A. 【必须第一步】把 Docker 生成的文件所有权改回给当前用户
+          # A. 抢回文件所有权 (Docker 产生的 root 文件改回当前用户)
           sudo chown -R $USER:$USER .
           
-          # B. 将 .css 改回 .jar
+          # B. 将 .css 恢复为 .jar
           if [ -d "jar" ]; then
+            echo "正在转换 jar 格式..."
             find jar -name "*.css" -exec sh -c 'mv "$1" "${1%.css}.jar"' _ {} \;
           fi
 
-          # C. 修改 json 里的内容（后缀改 jar，去掉 ghp.ci 镜像）
-          # 使用强制替换，确保生效
+          # C. 全局修正 JSON 内容
+          # 1. 把所有 .css 引用改回 .jar
+          # 2. 去掉不稳定的 ghp.ci 镜像前缀
+          # 3. 如果需要，可以把 main 分支名修正为 master (根据你仓库实际情况)
           sed -i 's/\.css/.jar/g' *.json
           sed -i 's/https:\/\/ghp.ci\///g' *.json
           
-          # D. 标记安全目录并提交推送
+          # 如果你的仓库默认分支是 master 而不是 main，执行下面这行替换
+          sed -i 's/\/main\//\/master\//g' *.json
+
+      - name: 5. 提交并推送到 GitHub
+        working-directory: ./ol
+        run: |
           git config --global --add safe.directory $(pwd)
           git config --local user.email "action@github.com"
           git config --local user.name "TVBox_Bot"
+          
           git add .
           
+          # 只有在有变动时才提交
           if [ -n "$(git status --porcelain)" ]; then
             git commit -m "Update TVBox (Refined) $(date +'%Y-%m-%d %H:%M')"
-            git push
+            git push origin master # 明确推送到 master 分支
           else
-            echo "Nothing to update"
+            echo "✅ 内容已是最新，无需更新。"
           fi
