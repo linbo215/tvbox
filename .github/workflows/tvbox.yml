@@ -9,35 +9,26 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-      - name: 检出代码
+      - name: 1. 检出 ol 仓库
         uses: actions/checkout@v4
         with:
-          fetch-depth: 1 # 对应 V1.7 优化：始终保持轻量化提交
+          repository: ${{ secrets.MY_USERNAME }}/ol
+          path: ol  # 必须拉取到名为 ol 的文件夹
+          token: ${{ secrets.MY_GITHUB_TOKEN }}
+          persist-credentials: true
 
-      - name: 设置 Python 环境
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.10'
+      - name: 2. 修复 git 权限 (Actions 必做)
+        run: git config --global --add safe.directory /home/runner/work/${{ github.event.repository.name }}/ol
 
-      - name: 安装容器核心依赖
+      - name: 3. 运行 Docker 并挂载已有的 ol 文件夹
         run: |
-          pip install requests aiohttp beautifulsoup4 pycryptodome # 容器运行所需的基础库
-
-      - name: 运行私有化清洗脚本
-        env:
-          USERNAME: ${{ secrets.MY_USERNAME }}
-          TOKEN: ${{ secrets.MY_GITHUB_TOKEN }}
-        run: |
-          # 1. 在容器外先手动创建文件夹，防止脚本找不到路径
-          mkdir -p ol
-          
-          # 2. 运行 Docker，注意 mirror=0 强制使用原生 GitHub
+          # 注意：通过 -v 挂载，脚本会发现文件夹已存在，从而跳过 git clone 步骤
           docker run --rm \
-            -v $(pwd)/ol:/ol \
+            -v ${{ github.workspace }}/ol:/ol \
             -e username=${{ secrets.MY_USERNAME }} \
             -e token=${{ secrets.MY_GITHUB_TOKEN }} \
             -e url='https://www.iyouhun.com/tv/0,http://肥猫.com?&signame=肥猫' \
-            -e repo='ol' \
+            -e repo=ol \
             -e mirror=0 \
             2011820123/tvbox:latest
 
