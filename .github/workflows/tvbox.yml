@@ -28,7 +28,12 @@ jobs:
           USERNAME: ${{ secrets.MY_USERNAME }}
           TOKEN: ${{ secrets.MY_GITHUB_TOKEN }}
         run: |
+          # 1. 在容器外先手动创建文件夹，防止脚本找不到路径
+          mkdir -p ol
+          
+          # 2. 运行 Docker，注意 mirror=0 强制使用原生 GitHub
           docker run --rm \
+            -v $(pwd)/ol:/ol \
             -e username=${{ secrets.MY_USERNAME }} \
             -e token=${{ secrets.MY_GITHUB_TOKEN }} \
             -e url='https://www.iyouhun.com/tv/0,http://肥猫.com?&signame=肥猫' \
