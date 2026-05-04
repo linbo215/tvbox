@@ -1,42 +1,52 @@
-name: TVBox 接口自动化私有化
+name: TVBox_Interface_Sync
 
 on:
   schedule:
-    - cron: '0 21 * * *' # 每天北京时间凌晨 5 点运行
-  workflow_dispatch:      # 支持点击按钮手动运行
+    - cron: '0 21 * * *' # 每天北京时间凌晨 5 点自动运行
+  workflow_dispatch:      # 支持手动点击按钮运行
 
 jobs:
   build:
     runs-on: ubuntu-latest
+    
     steps:
-      - name: 1. 检出 ol 仓库
+      - name: 1. 检出目标仓库 (ol)
         uses: actions/checkout@v4
         with:
-          repository: ${{ secrets.MY_USERNAME }}/ol
-          path: ol  # 必须拉取到名为 ol 的文件夹
+          # 注意：这里拉取的是你存放 all.json 的仓库
+          repository: ${{ github.repository_owner }}/ol
           token: ${{ secrets.MY_GITHUB_TOKEN }}
+          path: ol  # 关键：必须下载到名为 ol 的文件夹中
           persist-credentials: true
 
-      - name: 2. 修复 git 权限 (Actions 必做)
-        run: git config --global --add safe.directory /home/runner/work/${{ github.event.repository.name }}/ol
-
-      - name: 3. 运行 Docker 并挂载已有的 ol 文件夹
+      - name: 2. 预处理环境与权限
         run: |
-          # 注意：通过 -v 挂载，脚本会发现文件夹已存在，从而跳过 git clone 步骤
+          # 修复 Git 权限限制，防止 Docker 内部无法操作挂载目录
+          git config --global --add safe.directory /home/runner/work/${{ github.event.repository.name }}/ol
+          # 确保 jar 目录存在，防止脚本下载报错
+          mkdir -p ol/jar
+
+      - name: 3. 运行 Docker 清洗工具
+        # 使用挂载模式 (-v)，让容器直接读取第1步拉取好的代码，绕过 gitdl.cn 报错
+        run: |
           docker run --rm \
             -v ${{ github.workspace }}/ol:/ol \
             -e username=${{ secrets.MY_USERNAME }} \
             -e token=${{ secrets.MY_GITHUB_TOKEN }} \
             -e url='https://www.iyouhun.com/tv/0,http://肥猫.com?&signame=肥猫' \
-            -e repo=ol \
+            -e repo='ol' \
             -e mirror=0 \
+            -e target='tvbox.json' \
+            -e jar_suffix='css' \
             2011820123/tvbox:latest
 
-      - name: 强制推送到当前仓库
+      - name: 4. 推送更新到 GitHub
+        # 容器运行完后，文件已经写入到宿主机的 ol 文件夹中，现在由 Actions 负责推送
+        working-directory: ./ol
         run: |
           git config --local user.email "action@github.com"
           git config --local user.name "TVBox_Bot"
           git add .
-          # V1.7 逻辑：重置提交记录，防止仓库过大
-          git commit --amend -m "Update TVBox Interface $(date +'%Y-%m-%d %H:%M')" || git commit -m "Update TVBox"
-          git push --force
+          # 如果没有变化则跳过，不报错
+          git commit -m "Update TVBox Interface $(date +'%Y-%m-%d %H:%M')" || exit 0
+          git push
