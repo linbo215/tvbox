@@ -42,7 +42,7 @@ jobs:
             -e jar_suffix='css' \
             2011820123/tvbox:latest || echo "⚠️ 部分加密接口解析失败，跳过该接口继续加工..."
 
-      - name: 4. 权限抢回与二次加工 (含 all.json 瘦身)
+      - name: 4. 权限抢回与二次加工 (含所有文件修正)
         working-directory: ./ol
         run: |
           # A. 抢回权限
@@ -53,28 +53,27 @@ jobs:
             find jar -name "*.css" -exec sh -c 'mv "$1" "${1%.css}.jar"' _ {} \;
           fi
 
-          # C. 修正 JSON 内容
-          sed -i 's/\.css/.jar/g' *.json
-          sed -i 's/https:\/\/ghp.ci\///g' *.json
-          sed -i 's/\/main\//\/master\//g' *.json
+          # C. 【核心修正】全局替换：处理所有 .json 和 .txt 文件
+          # 1. 把 .css 换成 .jar
+          # 2. 去掉 ghp.ci (或者换成别的)
+          # 3. 分支名 main 换成 master
+          # 注意这里用的是 *.* 或者分两次写，确保覆盖所有文件
+          sed -i 's/\.css/.jar/g' *.json *.txt || true
+          sed -i 's#https://ghp.ci/##g' *.json *.txt || true
+          sed -i 's#/main/#/master/#g' *.json *.txt || true
 
-          # D. 【核心改进】all.json 瘦身
-          # 这里把你不想要的关键字写在 test("...") 里面，用 | 分隔
+          # D. all.json 瘦身 (保持不变)
           if [ -f "all.json" ]; then
-            echo "正在清理 all.json 中的冗余项..."
             cat all.json | jq '.urls |= map(select(.name | test("tvbox_tools|requirements|KsTOZZ|cnb|run\\.py") | not))' > tmp.json
             mv tmp.json all.json
           fi
 
-          # E. 推送准备
+          # E. 提交推送 (保持不变)
           git config --global --add safe.directory $(pwd)
           git config --local user.email "action@github.com"
           git config --local user.name "TVBox_Bot"
           git add .
-          
           if [ -n "$(git status --porcelain)" ]; then
-            git commit -m "Update TVBox (Cleaned & Refined) $(date +'%Y-%m-%d %H:%M')"
+            git commit -m "Update TVBox (Deep Clean) $(date +'%Y-%m-%d %H:%M')"
             git push origin master
-          else
-            echo "Nothing to update"
           fi
