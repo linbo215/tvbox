@@ -27,7 +27,6 @@ jobs:
           mkdir -p ol/jar
 
       - name: 3. 运行 Docker 清洗工具
-        # 使用挂载模式 (-v)，让容器直接读取第1步拉取好的代码，绕过 gitdl.cn 报错
         run: |
           docker run --rm \
             -v ${{ github.workspace }}/ol:/ol \
@@ -40,13 +39,25 @@ jobs:
             -e jar_suffix='css' \
             2011820123/tvbox:latest
 
-      - name: 4. 推送更新到 GitHub
-        # 容器运行完后，文件已经写入到宿主机的 ol 文件夹中，现在由 Actions 负责推送
+      - name: 4. 修复权限并推送更新
         working-directory: ./ol
         run: |
+          # --- 核心修复步骤 ---
+          # 1. 强制将所有文件所有权改回当前 Actions 用户
+          sudo chown -R $USER:$USER .
+          
+          # 2. 标记目录为安全目录，解决 dubious ownership 报错
+          git config --global --add safe.directory $(pwd)
+          
+          # 3. 执行推送逻辑
           git config --local user.email "action@github.com"
           git config --local user.name "TVBox_Bot"
           git add .
-          # 如果没有变化则跳过，不报错
-          git commit -m "Update TVBox Interface $(date +'%Y-%m-%d %H:%M')" || exit 0
-          git push
+          
+          # 检查是否有文件更改，有则提交
+          if [ -n "$(git status --porcelain)" ]; then
+            git commit -m "Update TVBox Interface $(date +'%Y-%m-%d %H:%M')"
+            git push
+          else
+            echo "没有内容更新，跳过推送。"
+          fi
