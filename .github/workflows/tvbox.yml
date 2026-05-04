@@ -35,7 +35,7 @@ jobs:
             -v ${{ github.workspace }}/ol:/ol \
             -e username=${{ secrets.MY_USERNAME }} \
             -e token=${{ secrets.MY_GITHUB_TOKEN }} \
-            -e url='http://肥猫.com?&signame=肥猫,http://fty.xxooo.cf/tv?&signame=饭太硬,http://我不是.摸鱼儿.com?&signame=摸鱼儿' \
+            -e url='http://肥猫.com?&signame=肥猫,http://fty.xxooo.cf/tv?&signame=饭太硬,http://我不是.摸鱼儿.com?&signame=摸鱼儿,https://raw.liucn.cc/box/m.json?&signame=老刘备,https://盒子迷.top/禁止贩卖?&signame=盒子迷,http://tvbox.xn--4kq62z5rby2qupq9ub.top/?&signame=放牛,https://raw.githubusercontent.com/xyq254245/xyqonlinerule/main/XYQTVBox.json?&signame=香雅情,http://home.jundie.top:81/top98.json?&signame=俊佬,https://raw.githubusercontent.com/guot55/yg/main/max.json?&signame=月光,https://raw.githubusercontent.com/HeChengChaXiu/tvbox/main/hccx.json?&signame=荷城茶秀,http://itvbox.cc/云星日记?&signame=云星日记,https://raw.githubusercontent.com/yoursmile66/TVBox/main/XC.json?&signame=南风' \
             -e repo='ol' \
             -e mirror=0 \
             -e target='tvbox.json' \
