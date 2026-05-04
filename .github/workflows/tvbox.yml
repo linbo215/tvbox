@@ -26,38 +26,46 @@ jobs:
           # 确保 jar 目录存在，防止脚本下载报错
           mkdir -p ol/jar
 
-      - name: 3. 运行 Docker 清洗工具
+      - name: 3. 运行 Docker 清洗工具 (第一步：抓取与清洗)
         run: |
           docker run --rm \
             -v ${{ github.workspace }}/ol:/ol \
             -e username=${{ secrets.MY_USERNAME }} \
             -e token=${{ secrets.MY_GITHUB_TOKEN }} \
-            -e url='https://www.iyouhun.com/tv/0,http://肥猫.com?&signame=肥猫' \
+            -e url='http://肥猫.com?&signame=肥猫,http://itvbox.cc/tvbox.json?&signame=云星' \
             -e repo='ol' \
             -e mirror=0 \
             -e target='tvbox.json' \
             -e jar_suffix='css' \
             2011820123/tvbox:latest
 
-      - name: 4. 修复权限并推送更新
+      - name: 4. 运行自定义修正脚本 (第二步：格式转换与镜像替换)
         working-directory: ./ol
         run: |
-          # --- 核心修复步骤 ---
-          # 1. 强制将所有文件所有权改回当前 Actions 用户
+          # 1. 把所有下载好的 .css 文件改回 .jar
+          if [ -d "jar" ]; then
+            find jar -name "*.css" -exec sh -c 'mv "$1" "${1%.css}.jar"' _ {} \;
+          fi
+
+          # 2. 修改 json 文件内容
+          # a. 把内部引用的 .css 替换回 .jar
+          # b. 把 ghp.ci 替换为你喜欢的镜像站 (例如 github.moeyy.xyz)，或者直接删掉
+          # 下面这行命令：先换后缀，再换镜像
+          sed -i 's/\.css/.jar/g' *.json
+          sed -i 's/https:\/\/ghp.ci\///g' *.json
+          
+          # 如果你想换成其他的加速前缀，比如 jsdelivr，可以用下面这行：
+          # sed -i 's/https:\/\/ghp.ci\//https:\/\/fastly.jsdelivr.net\/gh\/linbo215\/ol@master\//g' *.json
+
+      - name: 5. 修复权限并推送
+        working-directory: ./ol
+        run: |
           sudo chown -R $USER:$USER .
-          
-          # 2. 标记目录为安全目录，解决 dubious ownership 报错
           git config --global --add safe.directory $(pwd)
-          
-          # 3. 执行推送逻辑
           git config --local user.email "action@github.com"
           git config --local user.name "TVBox_Bot"
           git add .
-          
-          # 检查是否有文件更改，有则提交
           if [ -n "$(git status --porcelain)" ]; then
-            git commit -m "Update TVBox Interface $(date +'%Y-%m-%d %H:%M')"
+            git commit -m "Update TVBox (Jar Refined) $(date +'%Y-%m-%d %H:%M')"
             git push
-          else
-            echo "没有内容更新，跳过推送。"
           fi
