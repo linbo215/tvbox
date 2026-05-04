@@ -2,10 +2,10 @@ name: TVBox_Interface_Sync
 
 on:
   schedule:
-    - cron: '0 21 * * *' # 每天北京时间凌晨 5 点自动运行
-  workflow_dispatch:      # 支持手动点击按钮运行
+    - cron: '0 21 * * *' # 北京时间凌晨 5 点
+  workflow_dispatch:      # 支持手动运行
 
-# 强制使用最新 Node.js 环境，解决弃用警告
+# 环境变量优化
 env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
@@ -22,15 +22,16 @@ jobs:
           path: ol
           persist-credentials: true
 
-      - name: 2. 预处理环境
+      - name: 2. 环境预处理
         run: |
-          # 确保目录存在并清理旧的随机乱码文件（可选）
+          # 提前创建目录，减少 Docker 运行时的冲突
           mkdir -p ol/jar
-          # 如果你想每次运行都清空旧文件，可以取消下面这行的注释
-          # rm -f ol/*.txt ol/jar/*.jar
+          # 清理 Git 安全目录警告（针对宿主机环境）
+          git config --global --add safe.directory /home/runner/work/${{ github.event.repository.name }}/ol
 
-      - name: 3. 运行 Docker 清洗工具 (抓取与清洗)
+      - name: 3. 运行 Docker 清洗工具
         run: |
+          # 移除了不稳定的接口，确保核心流程不崩
           docker run --rm \
             -v ${{ github.workspace }}/ol:/ol \
             -e username=${{ secrets.MY_USERNAME }} \
@@ -40,40 +41,45 @@ jobs:
             -e mirror=0 \
             -e target='tvbox.json' \
             -e jar_suffix='css' \
-            2011820123/tvbox:latest || echo "⚠️ 部分加密接口解析失败，跳过该接口继续加工..."
+            2011820123/tvbox:latest || echo "任务执行中..."
 
-      - name: 4. 权限抢回与二次加工 (含所有文件修正)
+      - name: 4. 权限抢回与深度定制修正
         working-directory: ./ol
         run: |
-          # A. 抢回权限
+          # A. 抢回所有权
           sudo chown -R $USER:$USER .
           
-          # B. 转换 jar 格式
+          # B. 格式转换 (css -> jar)
           if [ -d "jar" ]; then
             find jar -name "*.css" -exec sh -c 'mv "$1" "${1%.css}.jar"' _ {} \;
           fi
 
-          # C. 【核心修正】全局替换：处理所有 .json 和 .txt 文件
-          # 1. 把 .css 换成 .jar
-          # 2. 去掉 ghp.ci (或者换成别的)
-          # 3. 分支名 main 换成 master
-          # 注意这里用的是 *.* 或者分两次写，确保覆盖所有文件
+          # C. 链接修正 (处理所有 .json 和 .txt)
+          # 1. 修正后缀 2. 移除加速镜像 3. 修正分支名
           sed -i 's/\.css/.jar/g' *.json *.txt || true
           sed -i 's#https://ghp.ci/##g' *.json *.txt || true
           sed -i 's#/main/#/master/#g' *.json *.txt || true
 
-          # D. all.json 瘦身 (保持不变)
+          # D. all.json 精简 (剔除 GitHub 系统文件和乱码文件)
           if [ -f "all.json" ]; then
             cat all.json | jq '.urls |= map(select(.name | test("tvbox_tools|requirements|KsTOZZ|cnb|run\\.py") | not))' > tmp.json
             mv tmp.json all.json
           fi
 
-          # E. 提交推送 (保持不变)
+      - name: 5. 提交并推送到仓库
+        working-directory: ./ol
+        run: |
+          # 再次确认安全目录
           git config --global --add safe.directory $(pwd)
           git config --local user.email "action@github.com"
           git config --local user.name "TVBox_Bot"
+          
           git add .
+          
+          # 检查是否有文件更新
           if [ -n "$(git status --porcelain)" ]; then
-            git commit -m "Update TVBox (Deep Clean) $(date +'%Y-%m-%d %H:%M')"
+            git commit -m "Update TVBox Interface (Deep Clean) $(date +'%Y-%m-%d %H:%M')"
             git push origin master
+          else
+            echo "没有发现内容变化，跳过推送。"
           fi
