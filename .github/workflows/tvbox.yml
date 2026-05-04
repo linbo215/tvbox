@@ -35,7 +35,7 @@ jobs:
             -v ${{ github.workspace }}/ol:/ol \
             -e username=${{ secrets.MY_USERNAME }} \
             -e token=${{ secrets.MY_GITHUB_TOKEN }} \
-            -e url='http://肥猫.com?&signame=肥猫,http://itvbox.cc/tvbox.json?&signame=云星' \
+            -e url='http://肥猫.com?&signame=肥猫,http://fty.xxooo.cf/tv?&signame=饭太硬' \
             -e repo='ol' \
             -e mirror=0 \
             -e target='tvbox.json' \
