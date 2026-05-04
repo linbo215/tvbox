@@ -27,18 +27,12 @@ jobs:
         env:
           USERNAME: ${{ secrets.MY_USERNAME }}
           TOKEN: ${{ secrets.MY_GITHUB_TOKEN }}
-          SOURCE_URL: 'https://www.iyouhun.com/tv/0,http://肥猫.com?&signame=肥猫'
-          REPO_NAME: 'ol'
-          TARGET_JSON: 'tvbox.json'
-          # --- 修改这里 ---
-          MIRROR_TYPE: '0'  # 0 代表不使用镜像，直连 github.com
         run: |
           docker run --rm \
-            -e username=$USERNAME \
-            -e token=$TOKEN \
-            -e url="$SOURCE_URL" \
-            -e repo=$REPO_NAME \
-            -e target=$TARGET_JSON \
+            -e username=${{ secrets.MY_USERNAME }} \
+            -e token=${{ secrets.MY_GITHUB_TOKEN }} \
+            -e url='https://www.iyouhun.com/tv/0,http://肥猫.com?&signame=肥猫' \
+            -e repo='ol' \
             -e mirror=0 \
             2011820123/tvbox:latest
 
