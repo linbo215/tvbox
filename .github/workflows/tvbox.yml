@@ -1,0 +1,58 @@
+name: TVBox 接口自动化私有化
+
+on:
+  schedule:
+    - cron: '0 21 * * *' # 每天北京时间凌晨 5 点运行
+  workflow_dispatch:      # 支持点击按钮手动运行
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: 检出代码
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1 # 对应 V1.7 优化：始终保持轻量化提交
+
+      - name: 设置 Python 环境
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+
+      - name: 安装容器核心依赖
+        run: |
+          pip install requests aiohttp beautifulsoup4 pycryptodome # 容器运行所需的基础库
+
+      - name: 运行私有化清洗脚本
+        env:
+          # 这里填入你的配置参数
+          USERNAME: ${{ secrets.MY_USERNAME }}
+          TOKEN: ${{ secrets.MY_GITHUB_TOKEN }}
+          # URL 可以填多个，用逗号隔开，参考你的演示示例
+          SOURCE_URL: 'https://www.iyouhun.com/tv/0,http://肥猫.com?&signame=肥猫'
+          REPO_NAME: 'ol'
+          TARGET_JSON: 'tvbox.json'
+          MIRROR_TYPE: '2'
+          JAR_SUFFIX: 'css'
+        run: |
+          # 如果你拿到了 fish2018/tvbox 的核心脚本 .py 文件
+          # 直接运行：python tvbox_tools.py
+          # 如果直接调用 Docker 镜像（GitHub 也支持跑 Docker）：
+          docker run --rm \
+            -e username=$USERNAME \
+            -e token=$TOKEN \
+            -e url="$SOURCE_URL" \
+            -e repo=$REPO_NAME \
+            -e target=$TARGET_JSON \
+            -e mirror=$MIRROR_TYPE \
+            -e jar_suffix=$JAR_SUFFIX \
+            2011820123/tvbox:latest
+
+      - name: 强制推送到当前仓库
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "TVBox_Bot"
+          git add .
+          # V1.7 逻辑：重置提交记录，防止仓库过大
+          git commit --amend -m "Update TVBox Interface $(date +'%Y-%m-%d %H:%M')" || git commit -m "Update TVBox"
+          git push --force
