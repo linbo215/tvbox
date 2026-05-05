@@ -36,7 +36,8 @@ jobs:
             -v ${{ github.workspace }}/ol:/ol \
             -e username=${{ secrets.MY_USERNAME }} \
             -e token=${{ secrets.MY_GITHUB_TOKEN }} \
-            -e url='https://7337.kstore.space/qxys/%E7%A6%81%E6%AD%A2%E4%BC%A0%E6%92%AD.json?&signame=传播' \            -e repo='ol' \
+            -e url='https://7337.kstore.space/qxys/%E7%A6%81%E6%AD%A2%E4%BC%A0%E6%92%AD.json?&signame=传播' \            
+            -e repo='ol' \
             -e mirror=0 \
             -e target='tvbox.json' \
             -e jar_suffix='css' \
