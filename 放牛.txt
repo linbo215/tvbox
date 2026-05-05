@@ -16,7 +16,7 @@
     },
 	{
       "key": "Doubana",
-      "name": "🐮【更新日期:20260426】🐮",
+      "name": "🐮【更新日期:20260504】🐮",
       "type": 3,
       "api": "csp_DoubanGuard",
       "searchable": 0,
@@ -54,7 +54,7 @@
     },
     {
       "key": "Wexerxiaoziyuan",
-      "name": "💓‍二小┃4K💓‍",
+      "name": "💓指南┃4K💓‍",
       "type": 3,
       "api": "csp_WexerxiaoziyuanGuard",
       "searchable": 1,
