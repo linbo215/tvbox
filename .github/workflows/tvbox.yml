@@ -2,7 +2,7 @@ name: TVBox_Interface_Sync
 
 on:
   schedule:
-    - cron: '0 21 * * *' # 北京时间凌晨 5 点
+    - cron: '0 23 * * *' # 北京时间凌晨 5 点
   workflow_dispatch:      # 支持手动运行
 
 # 环境变量优化
