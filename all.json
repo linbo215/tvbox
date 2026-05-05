@@ -1,6 +1,10 @@
 {
   "urls": [
     {
+      "name": "TOZZl",
+      "url": "https://raw.githubusercontent.com/linbo215/ol/master/TOZZl.txt"
+    },
+    {
       "name": "传播",
       "url": "https://raw.githubusercontent.com/linbo215/ol/master/传播.txt"
     },
