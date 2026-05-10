@@ -3,50 +3,107 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TVBox 接口镜像库</title>
+    <title>TVBox 接口发布页</title>
+    <link href="https://cdn.bootcdn.net/ajax/libs/twitter-bootstrap/5.2.3/css/bootstrap.min.css" rel="stylesheet">
     <style>
-        body { font-family: -apple-system, system-ui, BlinkMacSystemFont, "Segoe UI", Roboto; background: #f4f7f6; padding: 20px; color: #333; }
-        .container { max-width: 800px; margin: 0 auto; background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
-        h1 { color: #2c3e50; border-bottom: 2px solid #3498db; padding-bottom: 10px; }
-        ul { list-style: none; padding: 0; }
-        li { padding: 12px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center; }
-        a { color: #3498db; text-decoration: none; word-break: break-all; }
-        a:hover { text-decoration: underline; }
-        .copy-btn { background: #3498db; color: white; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer; font-size: 12px; margin-left: 10px; }
-        .footer { margin-top: 30px; font-size: 12px; color: #95a5a6; text-align: center; }
+        body { background-color: #f8f9fa; padding-top: 50px; }
+        .container { max-width: 900px; }
+        .card { border: none; border-radius: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.05); }
+        .list-group-item { border: none; border-bottom: 1px solid #f1f1f1; padding: 15px 20px; transition: all 0.2s; }
+        .list-group-item:hover { background-color: #fcfcfc; transform: translateX(5px); }
+        .file-name { font-weight: 500; color: #495057; text-decoration: none; }
+        .btn-copy { border-radius: 8px; font-size: 0.8rem; padding: 4px 12px; }
+        .badge-date { font-size: 0.7rem; color: #adb5bd; }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>TVBox 接口私有化目录</h1>
-        <p>当前域名: <code>https://box.yobz.de5.net</code></p>
-        <ul>
-<li><a href="${file#./}">${file#./}</a><button class="copy-btn" onclick="copyToClipboard('https://box.yobz.de5.net/${file#./}')">复制链接</button></li>
-<li><a href="${file#./}">${file#./}</a><button class="copy-btn" onclick="copyToClipboard('https://box.yobz.de5.net/${file#./}')">复制链接</button></li>
-<li><a href="${file#./}">${file#./}</a><button class="copy-btn" onclick="copyToClipboard('https://box.yobz.de5.net/${file#./}')">复制链接</button></li>
-<li><a href="${file#./}">${file#./}</a><button class="copy-btn" onclick="copyToClipboard('https://box.yobz.de5.net/${file#./}')">复制链接</button></li>
-<li><a href="${file#./}">${file#./}</a><button class="copy-btn" onclick="copyToClipboard('https://box.yobz.de5.net/${file#./}')">复制链接</button></li>
-<li><a href="${file#./}">${file#./}</a><button class="copy-btn" onclick="copyToClipboard('https://box.yobz.de5.net/${file#./}')">复制链接</button></li>
-<li><a href="${file#./}">${file#./}</a><button class="copy-btn" onclick="copyToClipboard('https://box.yobz.de5.net/${file#./}')">复制链接</button></li>
-<li><a href="${file#./}">${file#./}</a><button class="copy-btn" onclick="copyToClipboard('https://box.yobz.de5.net/${file#./}')">复制链接</button></li>
-<li><a href="${file#./}">${file#./}</a><button class="copy-btn" onclick="copyToClipboard('https://box.yobz.de5.net/${file#./}')">复制链接</button></li>
-<li><a href="${file#./}">${file#./}</a><button class="copy-btn" onclick="copyToClipboard('https://box.yobz.de5.net/${file#./}')">复制链接</button></li>
-<li><a href="${file#./}">${file#./}</a><button class="copy-btn" onclick="copyToClipboard('https://box.yobz.de5.net/${file#./}')">复制链接</button></li>
-<li><a href="${file#./}">${file#./}</a><button class="copy-btn" onclick="copyToClipboard('https://box.yobz.de5.net/${file#./}')">复制链接</button></li>
-<li><a href="${file#./}">${file#./}</a><button class="copy-btn" onclick="copyToClipboard('https://box.yobz.de5.net/${file#./}')">复制链接</button></li>
-<li><a href="${file#./}">${file#./}</a><button class="copy-btn" onclick="copyToClipboard('https://box.yobz.de5.net/${file#./}')">复制链接</button></li>
-        </ul>
-        <div class="footer">更新时间: 2026-05-10 23:25:10 | 由 GitHub Actions 自动生成</div>
+        <div class="card p-4">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2 class="mb-0">📺 TVBox 私有接口目录</h2>
+                <span class="badge bg-primary">已绑定 Cloudflare</span>
+            </div>
+            <div class="alert alert-light border-0 bg-light mb-4">
+                <small class="text-muted">当前加速域名：</small>
+                <code class="d-block mt-1">https://box.yobz.de5.net</code>
+            </div>
+            <div class="list-group">
+                        <div class="list-group-item d-flex justify-content-between align-items-center">
+                            <a href="TOZZl.txt" class="file-name">📄 TOZZl.txt</a>
+                            <button class="btn btn-outline-primary btn-copy" onclick="copyToClipboard('https://box.yobz.de5.net/TOZZl.txt')">点击复制</button>
+                        </div>
+                        <div class="list-group-item d-flex justify-content-between align-items-center">
+                            <a href="requirements.txt" class="file-name">📄 requirements.txt</a>
+                            <button class="btn btn-outline-primary btn-copy" onclick="copyToClipboard('https://box.yobz.de5.net/requirements.txt')">点击复制</button>
+                        </div>
+                        <div class="list-group-item d-flex justify-content-between align-items-center">
+                            <a href="tvbox.json" class="file-name">📄 tvbox.json</a>
+                            <button class="btn btn-outline-primary btn-copy" onclick="copyToClipboard('https://box.yobz.de5.net/tvbox.json')">点击复制</button>
+                        </div>
+                        <div class="list-group-item d-flex justify-content-between align-items-center">
+                            <a href="传播.txt" class="file-name">📄 传播.txt</a>
+                            <button class="btn btn-outline-primary btn-copy" onclick="copyToClipboard('https://box.yobz.de5.net/传播.txt')">点击复制</button>
+                        </div>
+                        <div class="list-group-item d-flex justify-content-between align-items-center">
+                            <a href="俊佬.txt" class="file-name">📄 俊佬.txt</a>
+                            <button class="btn btn-outline-primary btn-copy" onclick="copyToClipboard('https://box.yobz.de5.net/俊佬.txt')">点击复制</button>
+                        </div>
+                        <div class="list-group-item d-flex justify-content-between align-items-center">
+                            <a href="南风.txt" class="file-name">📄 南风.txt</a>
+                            <button class="btn btn-outline-primary btn-copy" onclick="copyToClipboard('https://box.yobz.de5.net/南风.txt')">点击复制</button>
+                        </div>
+                        <div class="list-group-item d-flex justify-content-between align-items-center">
+                            <a href="放牛.txt" class="file-name">📄 放牛.txt</a>
+                            <button class="btn btn-outline-primary btn-copy" onclick="copyToClipboard('https://box.yobz.de5.net/放牛.txt')">点击复制</button>
+                        </div>
+                        <div class="list-group-item d-flex justify-content-between align-items-center">
+                            <a href="月光.txt" class="file-name">📄 月光.txt</a>
+                            <button class="btn btn-outline-primary btn-copy" onclick="copyToClipboard('https://box.yobz.de5.net/月光.txt')">点击复制</button>
+                        </div>
+                        <div class="list-group-item d-flex justify-content-between align-items-center">
+                            <a href="盒子迷.txt" class="file-name">📄 盒子迷.txt</a>
+                            <button class="btn btn-outline-primary btn-copy" onclick="copyToClipboard('https://box.yobz.de5.net/盒子迷.txt')">点击复制</button>
+                        </div>
+                        <div class="list-group-item d-flex justify-content-between align-items-center">
+                            <a href="老刘备.txt" class="file-name">📄 老刘备.txt</a>
+                            <button class="btn btn-outline-primary btn-copy" onclick="copyToClipboard('https://box.yobz.de5.net/老刘备.txt')">点击复制</button>
+                        </div>
+                        <div class="list-group-item d-flex justify-content-between align-items-center">
+                            <a href="肥猫.txt" class="file-name">📄 肥猫.txt</a>
+                            <button class="btn btn-outline-primary btn-copy" onclick="copyToClipboard('https://box.yobz.de5.net/肥猫.txt')">点击复制</button>
+                        </div>
+                        <div class="list-group-item d-flex justify-content-between align-items-center">
+                            <a href="荷城茶秀.txt" class="file-name">📄 荷城茶秀.txt</a>
+                            <button class="btn btn-outline-primary btn-copy" onclick="copyToClipboard('https://box.yobz.de5.net/荷城茶秀.txt')">点击复制</button>
+                        </div>
+                        <div class="list-group-item d-flex justify-content-between align-items-center">
+                            <a href="饭太硬.txt" class="file-name">📄 饭太硬.txt</a>
+                            <button class="btn btn-outline-primary btn-copy" onclick="copyToClipboard('https://box.yobz.de5.net/饭太硬.txt')">点击复制</button>
+                        </div>
+                        <div class="list-group-item d-flex justify-content-between align-items-center">
+                            <a href="香雅情.txt" class="file-name">📄 香雅情.txt</a>
+                            <button class="btn btn-outline-primary btn-copy" onclick="copyToClipboard('https://box.yobz.de5.net/香雅情.txt')">点击复制</button>
+                        </div>
+            </div>
+            <div class="mt-4 pt-3 border-top text-center">
+                <p class="badge-date">最后更新时间：$(date +'%Y-%m-%d %H:%M:%S')</p>
+            </div>
+        </div>
     </div>
     <script>
         function copyToClipboard(text) {
-            var dummy = document.createElement("textarea");
-            document.body.appendChild(dummy);
-            dummy.value = text;
-            dummy.select();
-            document.execCommand("copy");
-            document.body.removeChild(dummy);
-            alert("链接已复制!");
+            navigator.clipboard.writeText(text).then(function() {
+                alert('✅ 链接已复制到剪贴板');
+            }, function(err) {
+                // 兼容旧版浏览器
+                var input = document.createElement('input');
+                input.setAttribute('value', text);
+                document.body.appendChild(input);
+                input.select();
+                document.execCommand('copy');
+                document.body.removeChild(input);
+                alert('✅ 链接已复制');
+            });
         }
     </script>
 </body>
