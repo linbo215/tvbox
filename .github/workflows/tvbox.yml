@@ -70,53 +70,71 @@ jobs:
       - name: 5. 生成 Index.html 静态页面
         working-directory: ./ol
         run: |
-          # 开始编写 HTML
-          cat <<EOF > index.html
+          # 1. 编写 HTML 头部（注意：这里使用 'EOF' 加引号防止变量被 Shell 提前解析）
+          cat <<'EOF' > index.html
           <!DOCTYPE html>
           <html lang="zh-CN">
           <head>
               <meta charset="UTF-8">
               <meta name="viewport" content="width=device-width, initial-scale=1.0">
-              <title>TVBox 接口镜像库</title>
+              <title>TVBox 接口发布页</title>
+              <link href="https://cdn.bootcdn.net/ajax/libs/twitter-bootstrap/5.2.3/css/bootstrap.min.css" rel="stylesheet">
               <style>
-                  body { font-family: -apple-system, system-ui, BlinkMacSystemFont, "Segoe UI", Roboto; background: #f4f7f6; padding: 20px; color: #333; }
-                  .container { max-width: 800px; margin: 0 auto; background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
-                  h1 { color: #2c3e50; border-bottom: 2px solid #3498db; padding-bottom: 10px; }
-                  ul { list-style: none; padding: 0; }
-                  li { padding: 12px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center; }
-                  a { color: #3498db; text-decoration: none; word-break: break-all; }
-                  a:hover { text-decoration: underline; }
-                  .copy-btn { background: #3498db; color: white; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer; font-size: 12px; margin-left: 10px; }
-                  .footer { margin-top: 30px; font-size: 12px; color: #95a5a6; text-align: center; }
+                  body { background-color: #f8f9fa; padding-top: 50px; }
+                  .container { max-width: 900px; }
+                  .card { border: none; border-radius: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.05); }
+                  .list-group-item { border: none; border-bottom: 1px solid #f1f1f1; padding: 15px 20px; transition: all 0.2s; }
+                  .list-group-item:hover { background-color: #fcfcfc; transform: translateX(5px); }
+                  .file-name { font-weight: 500; color: #495057; text-decoration: none; }
+                  .btn-copy { border-radius: 8px; font-size: 0.8rem; padding: 4px 12px; }
+                  .badge-date { font-size: 0.7rem; color: #adb5bd; }
               </style>
           </head>
           <body>
               <div class="container">
-                  <h1>TVBox 接口私有化目录</h1>
-                  <p>当前域名: <code>${{ env.CF_DOMAIN }}</code></p>
-                  <ul>
+                  <div class="card p-4">
+                      <div class="d-flex justify-content-between align-items-center mb-4">
+                          <h2 class="mb-0">📺 TVBox 私有接口目录</h2>
+                          <span class="badge bg-primary">已绑定 Cloudflare</span>
+                      </div>
+                      <div class="alert alert-light border-0 bg-light mb-4">
+                          <small class="text-muted">当前加速域名：</small>
+                          <code class="d-block mt-1">${{ env.CF_DOMAIN }}</code>
+                      </div>
+                      <div class="list-group">
           EOF
 
-          # 自动扫描所有 json 和 txt 文件并添加到 HTML
+          # 2. 动态生成文件列表（修复了 ${file#./} 的转义问题）
           find . -maxdepth 1 -type f \( -name "*.json" -o -name "*.txt" \) ! -name "all.json" | sort | while read file; do
-              filename=\${file#./}
-              echo "<li><a href=\"$filename\">$filename</a><button class=\"copy-btn\" onclick=\"copyToClipboard('${{ env.CF_DOMAIN }}/$filename')\">复制链接</button></li>" >> index.html
+              filename=$(echo "$file" | sed 's|./||')
+              echo "                        <div class=\"list-group-item d-flex justify-content-between align-items-center\">" >> index.html
+              echo "                            <a href=\"$filename\" class=\"file-name\">📄 $filename</a>" >> index.html
+              echo "                            <button class=\"btn btn-outline-primary btn-copy\" onclick=\"copyToClipboard('${{ env.CF_DOMAIN }}/$filename')\">点击复制</button>" >> index.html
+              echo "                        </div>" >> index.html
           done
 
-          # 补全 HTML 结尾
-          cat <<EOF >> index.html
-                  </ul>
-                  <div class="footer">更新时间: $(date +'%Y-%m-%d %H:%M:%S') | 由 GitHub Actions 自动生成</div>
+          # 3. 编写 HTML 尾部
+          cat <<'EOF' >> index.html
+                      </div>
+                      <div class="mt-4 pt-3 border-top text-center">
+                          <p class="badge-date">最后更新时间：$(date +'%Y-%m-%d %H:%M:%S')</p>
+                      </div>
+                  </div>
               </div>
               <script>
                   function copyToClipboard(text) {
-                      var dummy = document.createElement("textarea");
-                      document.body.appendChild(dummy);
-                      dummy.value = text;
-                      dummy.select();
-                      document.execCommand("copy");
-                      document.body.removeChild(dummy);
-                      alert("链接已复制!");
+                      navigator.clipboard.writeText(text).then(function() {
+                          alert('✅ 链接已复制到剪贴板');
+                      }, function(err) {
+                          // 兼容旧版浏览器
+                          var input = document.createElement('input');
+                          input.setAttribute('value', text);
+                          document.body.appendChild(input);
+                          input.select();
+                          document.execCommand('copy');
+                          document.body.removeChild(input);
+                          alert('✅ 链接已复制');
+                      });
                   }
               </script>
           </body>
