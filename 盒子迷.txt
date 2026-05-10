@@ -1,7 +1,7 @@
 {
   "wallpaper": "https://tv.nxog.top/m/t/",
   "logo": "https://ncstatic-file.clewm.net/rsrc/2025/0930/20/945a6372224243d3f3d63cb309c0b7b1.png",
-  "spider": "https://raw.githubusercontent.com/linbo215/ol/master/jar/盒子迷.jar",
+  "spider": "https://box.yobz.de5.net/jar/盒子迷.jar",
   "warningText": "tv提示:\n📢接口软件永远免费 \n📢长期维护切勿贩卖",
   "sites": [
     {

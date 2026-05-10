@@ -1,5 +1,5 @@
 {
-  "spider": "https://raw.githubusercontent.com/linbo215/ol/master/jar/俊佬.jar",
+  "spider": "https://box.yobz.de5.net/jar/俊佬.jar",
   "lives": [
     {
       "name": "直播",

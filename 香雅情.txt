@@ -1,6 +1,6 @@
 {
     "wallpaper": "https://wp.upx8.com/api.php",
-    "spider": "https://raw.githubusercontent.com/linbo215/ol/master/jar/香雅情.jar",
+    "spider": "https://box.yobz.de5.net/jar/香雅情.jar",
     "lives": [
         {
           "name": "本地live文件",

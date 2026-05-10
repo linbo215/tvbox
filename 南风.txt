@@ -1,7 +1,7 @@
 //本人无公众号、无盈利、无引流、免费分享给小白使用，请勿轻信他人，谨防上当受骗。[所有内容仅供学习使用，请勿用于违法用途]
 
 {
-	"spider": "https://raw.githubusercontent.com/linbo215/ol/master/jar/南风.jar",
+	"spider": "https://box.yobz.de5.net/jar/南风.jar",
 	"wallpaper": "https://深色壁纸.xxooo.cf/",
 
 	"sites":[
