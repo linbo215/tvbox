@@ -1,13 +1,14 @@
-name: TVBox_Interface_Sync
+name: TVBox_Interface_Sync_With_Index
 
 on:
   schedule:
     - cron: '0 23 * * *' # 北京时间凌晨 5 点
   workflow_dispatch:      # 支持手动运行
 
-# 环境变量优化
 env:
   FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+  # 【配置项】请在此处填写你在 CF 绑定的域名，不要带最后的斜杠
+  CF_DOMAIN: "https://box.yobz.de5.net" 
 
 jobs:
   build:
@@ -24,14 +25,11 @@ jobs:
 
       - name: 2. 环境预处理
         run: |
-          # 提前创建目录，减少 Docker 运行时的冲突
           mkdir -p ol/jar
-          # 清理 Git 安全目录警告（针对宿主机环境）
           git config --global --add safe.directory /home/runner/work/${{ github.event.repository.name }}/ol
 
       - name: 3. 运行 Docker 清洗工具
         run: |
-          # 移除了不稳定的接口，确保核心流程不崩
           docker run --rm \
             -v ${{ github.workspace }}/ol:/ol \
             -e username=${{ secrets.MY_USERNAME }} \
@@ -43,42 +41,98 @@ jobs:
             -e jar_suffix='css' \
             2011820123/tvbox:latest || echo "任务执行中..."
 
-      - name: 4. 权限抢回与深度定制修正
+      - name: 4. 深度定制修正与链接替换
         working-directory: ./ol
         run: |
-          # A. 抢回所有权
           sudo chown -R $USER:$USER .
           
-          # B. 格式转换 (css -> jar)
+          # A. 格式转换 (css -> jar)
           if [ -d "jar" ]; then
             find jar -name "*.css" -exec sh -c 'mv "$1" "${1%.css}.jar"' _ {} \;
           fi
 
-          # C. 链接修正 (处理所有 .json 和 .txt)
-          # 1. 修正后缀 2. 移除加速镜像 3. 修正分支名
+          # B. 基础修正
           sed -i 's/\.css/.jar/g' *.json *.txt || true
           sed -i 's#https://ghp.ci/##g' *.json *.txt || true
           sed -i 's#/main/#/master/#g' *.json *.txt || true
 
-          # D. all.json 精简 (剔除 GitHub 系统文件和乱码文件)
+          # C. 【新增】将 GitHub 链接替换为 CF 域名
+          # 匹配 raw.githubusercontent.com/.../ol/master/ 替换为 CF_DOMAIN/
+          GITHUB_RAW_URL="https://raw.githubusercontent.com/linbo215/ol/master"
+          find . -type f \( -name "*.json" -o -name "*.txt" \) -exec sed -i "s#${GITHUB_RAW_URL}#${{ env.CF_DOMAIN }}#g" {} +
+
+          # D. all.json 精简
           if [ -f "all.json" ]; then
-            cat all.json | jq '.urls |= map(select(.name | test("tvbox_tools|requirements|KsTOZZ|cnb|run\\.py") | not))' > tmp.json
+            cat all.json | jq '.urls |= map(select(.name | test("tvbox_tools|requirements|KsTOZZ|cnb|run\\.py|index\\.html") | not))' > tmp.json
             mv tmp.json all.json
           fi
 
-      - name: 5. 提交并推送到仓库
+      - name: 5. 生成 Index.html 静态页面
         working-directory: ./ol
         run: |
-          # 再次确认安全目录
+          # 开始编写 HTML
+          cat <<EOF > index.html
+          <!DOCTYPE html>
+          <html lang="zh-CN">
+          <head>
+              <meta charset="UTF-8">
+              <meta name="viewport" content="width=device-width, initial-scale=1.0">
+              <title>TVBox 接口镜像库</title>
+              <style>
+                  body { font-family: -apple-system, system-ui, BlinkMacSystemFont, "Segoe UI", Roboto; background: #f4f7f6; padding: 20px; color: #333; }
+                  .container { max-width: 800px; margin: 0 auto; background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+                  h1 { color: #2c3e50; border-bottom: 2px solid #3498db; padding-bottom: 10px; }
+                  ul { list-style: none; padding: 0; }
+                  li { padding: 12px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center; }
+                  a { color: #3498db; text-decoration: none; word-break: break-all; }
+                  a:hover { text-decoration: underline; }
+                  .copy-btn { background: #3498db; color: white; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer; font-size: 12px; margin-left: 10px; }
+                  .footer { margin-top: 30px; font-size: 12px; color: #95a5a6; text-align: center; }
+              </style>
+          </head>
+          <body>
+              <div class="container">
+                  <h1>TVBox 接口私有化目录</h1>
+                  <p>当前域名: <code>${{ env.CF_DOMAIN }}</code></p>
+                  <ul>
+          EOF
+
+          # 自动扫描所有 json 和 txt 文件并添加到 HTML
+          find . -maxdepth 1 -type f \( -name "*.json" -o -name "*.txt" \) ! -name "all.json" | sort | while read file; do
+              filename=\${file#./}
+              echo "<li><a href=\"$filename\">$filename</a><button class=\"copy-btn\" onclick=\"copyToClipboard('${{ env.CF_DOMAIN }}/$filename')\">复制链接</button></li>" >> index.html
+          done
+
+          # 补全 HTML 结尾
+          cat <<EOF >> index.html
+                  </ul>
+                  <div class="footer">更新时间: $(date +'%Y-%m-%d %H:%M:%S') | 由 GitHub Actions 自动生成</div>
+              </div>
+              <script>
+                  function copyToClipboard(text) {
+                      var dummy = document.createElement("textarea");
+                      document.body.appendChild(dummy);
+                      dummy.value = text;
+                      dummy.select();
+                      document.execCommand("copy");
+                      document.body.removeChild(dummy);
+                      alert("链接已复制!");
+                  }
+              </script>
+          </body>
+          </html>
+          EOF
+
+      - name: 6. 提交并推送到仓库
+        working-directory: ./ol
+        run: |
           git config --global --add safe.directory $(pwd)
           git config --local user.email "action@github.com"
           git config --local user.name "TVBox_Bot"
           
           git add .
-          
-          # 检查是否有文件更新
           if [ -n "$(git status --porcelain)" ]; then
-            git commit -m "Update TVBox Interface (Deep Clean) $(date +'%Y-%m-%d %H:%M')"
+            git commit -m "Update TVBox Interface & Index.html $(date +'%Y-%m-%d %H:%M')"
             git push origin master
           else
             echo "没有发现内容变化，跳过推送。"
