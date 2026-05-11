@@ -70,11 +70,35 @@ jobs:
       - name: 5. 生成 Index.html 静态页面
         working-directory: ./ol
         run: |
-          # 1. 预定义变量
+          # 1. 准备变量
           NOW=$(date +'%Y-%m-%d %H:%M:%S')
+          DOMAIN="${{ env.CF_DOMAIN }}"
           
-          # 2. 写入 HTML 头部 (解析变量，如域名和时间)
-          cat > index.html <<EOF
+          # 2. 生成文件列表的 HTML 片段到临时文件 list.tmp
+          > list.tmp
+          
+          # 优先处理 all.json
+          if [ -f "all.json" ]; then
+              echo "                        <div class=\"list-group-item d-flex justify-content-between align-items-center all-json-item\">" >> list.tmp
+              echo "                            <a href=\"all.json\" class=\"file-name\">🌟 all.json (全接口汇总)</a>" >> list.tmp
+              echo "                            <button class=\"btn btn-primary btn-copy\" onclick=\"copyToClipboard('$DOMAIN/all.json')\">一键复制</button>" >> list.tmp
+              echo "                        </div>" >> list.tmp
+          fi
+          
+          # 处理其他文件 (注意：这里直接操作字符串，不通过环境变量传递)
+          for file in *.json *.txt; do
+              # 排除掉不需要显示的文件
+              if [ "$file" = "all.json" ] || [ "$file" = "index.html" ] || [ "$file" = "requirements.txt" ] || [ "$file" = "*.json" ] || [ "$file" = "*.txt" ]; then
+                  continue
+              fi
+              echo "                        <div class=\"list-group-item d-flex justify-content-between align-items-center\">" >> list.tmp
+              echo "                            <a href=\"$file\" class=\"file-name\">📄 $file</a>" >> list.tmp
+              echo "                            <button class=\"btn btn-outline-primary btn-copy\" onclick=\"copyToClipboard('$DOMAIN/$file')\">复制链接</button>" >> list.tmp
+              echo "                        </div>" >> list.tmp
+          done
+
+          # 3. 合成最终的 index.html
+          cat <<EOF > index.html
           <!DOCTYPE html>
           <html lang="zh-CN">
           <head>
@@ -103,30 +127,10 @@ jobs:
                       </div>
                       <div class="alert alert-light border-0 bg-light mb-4 text-center">
                           <small class="text-muted text-uppercase">加速域名</small>
-                          <code class="d-block mt-1" style="font-size: 1.1rem;">${{ env.CF_DOMAIN }}</code>
+                          <code class="d-block mt-1" style="font-size: 1.1rem;">$DOMAIN</code>
                       </div>
                       <div class="list-group">
-          EOF
-
-          # 3. 循环插入 all.json (单独处理以确保位置在最前)
-          if [ -f "all.json" ]; then
-              echo "                        <div class=\"list-group-item d-flex justify-content-between align-items-center all-json-item\">" >> index.html
-              echo "                            <a href=\"all.json\" class=\"file-name\">🌟 all.json (全接口汇总)</a>" >> index.html
-              echo "                            <button class=\"btn btn-primary btn-copy\" onclick=\"copyToClipboard('${{ env.CF_DOMAIN }}/all.json')\">一键复制</button>" >> index.html
-              echo "                        </div>" >> index.html
-          fi
-
-          # 4. 循环插入其他文件 (注意使用 printf 避免变量解析冲突)
-          find . -maxdepth 1 -type f \( -name "*.json" -o -name "*.txt" \) ! -name "all.json" ! -name "index.html" ! -name "requirements.txt" | sort | while read -r file; do
-              fname=\${file#./}
-              printf '                        <div class="list-group-item d-flex justify-content-between align-items-center">\n' >> index.html
-              printf '                            <a href="%s" class="file-name">📄 %s</a>\n' "\$fname" "\$fname" >> index.html
-              printf '                            <button class="btn btn-outline-primary btn-copy" onclick="copyToClipboard('\''%s/%s'\'')">复制链接</button>\n' "${{ env.CF_DOMAIN }}" "\$fname" >> index.html
-              printf '                        </div>\n' >> index.html
-          done
-
-          # 5. 写入 HTML 尾部
-          cat >> index.html <<EOF
+          $(cat list.tmp)
                       </div>
                       <div class="mt-4 pt-3 border-top text-center">
                           <p class="badge-date">最后同步于：$NOW</p>
@@ -135,24 +139,21 @@ jobs:
               </div>
               <script>
                   function copyToClipboard(text) {
-                      if (!navigator.clipboard) {
-                          var input = document.createElement('input');
-                          input.value = text;
-                          document.body.appendChild(input);
-                          input.select();
-                          document.execCommand('copy');
-                          document.body.removeChild(input);
-                          alert('✅ 链接已复制');
-                          return;
-                      }
-                      navigator.clipboard.writeText(text).then(function() {
-                          alert('✅ 链接已复制');
-                      });
+                      const input = document.createElement('textarea');
+                      input.value = text;
+                      document.body.appendChild(input);
+                      input.select();
+                      document.execCommand('copy');
+                      document.body.removeChild(input);
+                      alert('✅ 链接已复制');
                   }
               </script>
           </body>
           </html>
           EOF
+          
+          # 清理临时文件
+          rm list.tmp
 
       - name: 6. 提交并推送到仓库
         working-directory: ./ol
