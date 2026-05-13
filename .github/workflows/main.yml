@@ -31,7 +31,7 @@ jobs:
       - name: 3. 运行 Docker 清洗工具
         run: |
           # 将 URL 存入环境变量，避免 shell 转义错误
-          TARGET_URL='https://7337.kstore.space/qxys/%E7%A6%81%E6%AD%A2%E4%BC%A0%E6%92%AD.json?&signame=传播'
+          TARGET_URL=',https://yubo.boh.de5.net/001.json?&signame=Easy'
           
           docker run --rm \
             -v ${{ github.workspace }}/ol:/ol \
