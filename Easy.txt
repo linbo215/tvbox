@@ -40,9 +40,9 @@
       "name": "🅱┃独立运行┃哔哩",
       "type": 3,
       "api": "csp_Bili",
-      "jar": "https://jar.ben.us.ci/MY.jar",
+      "jar": "https://box.yobz.de5.net/jar/MY.jar",
       "playerType": 1,
-      "ext": "https://jar.ben.us.ci/bilibili.json"
+      "ext": "https://box.yobz.de5.net/jar/bilibili.json"
     }, 
     {
       "key": "至臻清风-7",
